@@ -48,10 +48,24 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "mcc_generated_files/mcc.h"
 #include "delay.h"
 #include "LiquidCrystal_I2C.h"
+#include "exceptions.h"
 #include "BMP180.h"
 
 uint8_t count = 0;
 uint8_t DISP_BUFFER[LCD_COLS + 1];
+S_CALIB_DATA CALIB_DATA;
+
+void PrintBinary(uint8_t value)
+{ int j; uint8_t i = 0x80;
+  for (j = 0; j < 8; j++)
+  {
+    if (value & i) DISP_BUFFER[j] = '1';
+    else DISP_BUFFER[j] = '0';
+    i >>= 1;
+  }
+  DISP_BUFFER[j] = '\0';
+}
+
 /*
                          Main application
  */
@@ -87,10 +101,50 @@ void main(void)
 
     // Disable the Peripheral Interrupts
     //INTERRUPT_PeripheralInterruptDisable();
+
+    /* Start program, and I/O testing. */
+
     Init_LCD();
+
+    if (!Test_BMP180_and_IDByte())
+    {
+      ExecuteExceptions(true, EXC_NO_BMP_180, "", "");
+    }
+
     LCD_I2C_Backlight();
     LCD_I2C_Display();
     LCD_I2C_Clear();
+
+    S_MEAS_CNTRL meas_control;
+    meas_control.SCO = 0b1;
+    meas_control.OSS = 0b11;
+//    SetMeasurementControl(meas_control);
+
+    ReadCalibrationDatas(&CALIB_DATA);
+    int16_t utemp;
+
+    int u = 0;
+
+    while (1)
+    {
+      utemp = ReadUncompTemperature();
+      sprintf(DISP_BUFFER, "UTEMP=%6i", utemp);
+      LCD_I2C_SetCursor(0, 1);
+      LCD_I2C_PrintStr(DISP_BUFFER);
+//      while (BUTTON_GetValue());
+      delayms(500);
+      u++;
+      if (u == 11) u = 0;
+    }
+
+    while (1)
+    {
+      meas_control = GetMeasurementControl();
+      PrintBinary(meas_control.byteval);
+      LCD_I2C_SetCursor(0, 1);
+      LCD_I2C_PrintStr(DISP_BUFFER);
+      while (1);
+    }
 
     sprintf(DISP_BUFFER, "PR ID:%xH", GetIDByte());
     LCD_I2C_SetCursor(0, 1);

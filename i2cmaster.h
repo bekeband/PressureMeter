@@ -17,7 +17,8 @@ extern "C" {
 
 #define SLAVE_I2C_GENERIC_RETRY_MAX     10
 
-int Write_I2C_Master(uint8_t* writeBuffer, uint8_t length, uint16_t slaveDeviceAddress, I2C_MESSAGE_STATUS &status);
+uint8_t Write_I2C_Master(uint8_t* writeBuffer, uint8_t length, uint16_t slaveDeviceAddress);
+uint8_t Read_I2C_Master(uint8_t* readBuffer, uint8_t length, uint16_t slaveDeviceAddress);
 
 #ifdef	__cplusplus
 }

@@ -52,9 +52,12 @@
 
 void Init_LCD();
 void LCD_I2C_Backlight();
+void LCD_I2C_NoBacklight();
 void LCD_I2C_PrintStr(const char c[]);
 void LCD_I2C_PrintBuffer(const char b[], int size);
 void LCD_I2C_SetCursor(uint8_t col, uint8_t row);
 void LCD_I2C_Display();
+void LCD_I2C_Clear();
+void LCD_I2C_Home();
 
 #endif

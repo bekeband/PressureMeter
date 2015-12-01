@@ -15,8 +15,12 @@ extern "C" {
 #include "LiquidCrystal_I2C.h"
 #include "mcc_generated_files/mcc.h"
 
-void ExecuteExceptions(bool is_display);
+#define EXC_NO_ADDR27H  0
+#define EXC_NO_ADDR77H  1
+#define EXC_NO_BMP_180  2
+#define EXC_NO_DISP     3
 
+void ExecuteExceptions(bool is_display, int code, const char* P, const char* I);
 
 #ifdef	__cplusplus
 }

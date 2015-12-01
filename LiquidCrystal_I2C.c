@@ -146,7 +146,7 @@ void Init_LCD()
    
    delayms(1);
 	// turn the display on with no cursor or blinking default
-	 displaycontrol = LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKOFF;
+	 displaycontrol = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;
    LCD_I2C_Display();
 
     // clear it off
