@@ -53,7 +53,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 uint8_t count = 0;
 uint8_t DISP_BUFFER[LCD_COLS + 1];
-S_CALIB_DATA CALIB_DATA;
 
 void PrintBinary(uint8_t value)
 { int j; uint8_t i = 0x80;
@@ -120,17 +119,32 @@ void main(void)
     meas_control.OSS = 0b11;
 //    SetMeasurementControl(meas_control);
 
-    ReadCalibrationDatas(&CALIB_DATA);
-    int16_t utemp;
+    ReadCalibrationDatas();
+    uint24_t upress;
+    float fpress;
+    float utemp;
+    float ctemp;
+    float ftemp;
 
     int u = 0;
 
     while (1)
     {
       utemp = ReadUncompTemperature();
-      sprintf(DISP_BUFFER, "UTEMP=%6i", utemp);
+      ctemp = CalculateTemperature(utemp);
+      ftemp = ctemp / 10f;
+      /* Out the temperature value. */
+      sprintf(DISP_BUFFER, "TEMP = %7.1f", ftemp);
+      LCD_I2C_SetCursor(0, 0);
+      LCD_I2C_PrintStr(DISP_BUFFER);
+
+      upress = ReadUncompPressure(0b00);
+//      sprintf(DISP_BUFFER, "%3i, %3i, %3i", upress.LSB, upress.MSB, upress.XLSB);
+      fpress = upress;
+      sprintf(DISP_BUFFER, "%8.1f", fpress);
       LCD_I2C_SetCursor(0, 1);
       LCD_I2C_PrintStr(DISP_BUFFER);
+//      sprintf(DISP_BUFFER, "%8u %8u", CALIB_DATA.ac5, CALIB_DATA.ac6);
 //      while (BUTTON_GetValue());
       delayms(500);
       u++;
