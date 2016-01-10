@@ -33,20 +33,16 @@ extern "C" {
 
 #define ADDR_ID_REG 0xD0
 
-typedef union {
+/*typedef union {
   struct {
-    uint8_t MSB;
-    uint8_t LSB;
     uint8_t XLSB;
+    uint8_t LSB;
+    uint8_t MSB;
   };
   struct {
-    unsigned: 5;
-    unsigned: 3;
+    int32_t DATA32;
   };
-  struct {
-    int24_t DATA24;
-  };
-} S_PRESSURE_DATA;
+} S_PRESSURE_DATA;*/
 
 typedef union  {
   struct {
@@ -87,10 +83,12 @@ uint8_t GetIDByte();
 int Test_BMP180_and_IDByte();
 void StartMeasurement();
 void ReadCalibrationDatas();
-int16_t ReadUncompTemperature();
-uint24_t ReadUncompPressure(uint8_t mode);
-float CalculateTemperature(float uncomp_temp);
-float CalculatePressure(int16_t uncomp_pressure);
+void StandardCalibDatas(int i);
+int32_t ComputeB5(int32_t UT);
+int32_t ReadUncompTemperature();
+int32_t ReadUncompPressure(uint8_t mode);
+float GetTemperature(int32_t B5);
+int32_t CalculatePressure(int32_t UP, int32_t B5, uint8_t mode);
 void SoftReset();
 S_MEAS_CNTRL GetMeasurementControl();
 void SetMeasurementControl(S_MEAS_CNTRL cntrl);

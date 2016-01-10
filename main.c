@@ -45,6 +45,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "mcc_generated_files/mcc.h"
 #include "delay.h"
 #include "LiquidCrystal_I2C.h"
@@ -65,11 +66,29 @@ void PrintBinary(uint8_t value)
   DISP_BUFFER[j] = '\0';
 }
 
-/*
-                         Main application
- */
+int32_t value;
+int8_t inval = 0x55;
+const float AmbPress = 1032;  // Ambient pressure on sea level in hPa
+
+float CalculateAltitude(float fcpress, float presssealevel)
+{ float F1, F2, F3, F4;
+  F1 = (fcpress / presssealevel);
+  F2 = pow(F1, (1 / 5.255));
+  F3 = 1 - F2;
+  F4 = 44330 * F3;
+  return F4;
+}
+
 void main(void)
 {
+
+/*  value = (inval << 8);
+  inval = 0x45;
+  value += (inval * 0x10000L);
+  if (value)
+  {
+    PORTBbits.RB4 = 1;
+  }*/
     // Initialize the device
     SYSTEM_Initialize();
 
@@ -120,33 +139,47 @@ void main(void)
 //    SetMeasurementControl(meas_control);
 
     ReadCalibrationDatas();
-    uint24_t upress;
-    float fpress;
-    float utemp;
-    float ctemp;
+//    StandardCalibDatas(0);
+    uint32_t upress;
+    uint32_t fpress;
+    float fcpress;
+    int32_t B5;
+    int32_t utemp;
+    int32_t ctemp;
     float ftemp;
+    float altitude;
+
+    uint8_t mode = 0b11;
 
     int u = 0;
 
     while (1)
     {
       utemp = ReadUncompTemperature();
-      ctemp = CalculateTemperature(utemp);
-      ftemp = ctemp / 10f;
+      B5 = ComputeB5(utemp);
+
+//      ctemp = CalculateTemperature(utemp, &B5);
+      ftemp = GetTemperature(B5);
       /* Out the temperature value. */
-      sprintf(DISP_BUFFER, "TEMP = %7.1f", ftemp);
+      sprintf(DISP_BUFFER, "T = %9.1f", ftemp);
+//      sprintf(DISP_BUFFER, "B5 = %i", B5);
       LCD_I2C_SetCursor(0, 0);
       LCD_I2C_PrintStr(DISP_BUFFER);
 
-      upress = ReadUncompPressure(0b00);
+      upress = ReadUncompPressure(mode);
+      fpress = CalculatePressure(upress, B5, mode);
+
 //      sprintf(DISP_BUFFER, "%3i, %3i, %3i", upress.LSB, upress.MSB, upress.XLSB);
-      fpress = upress;
-      sprintf(DISP_BUFFER, "%8.1f", fpress);
+      fcpress = fpress / 100f;
+      altitude = CalculateAltitude(fcpress, AmbPress);
+//      sprintf(DISP_BUFFER, "P = %6.1f hPa", fcpress);
+      sprintf(DISP_BUFFER, "ALT = %10.1f", altitude);
       LCD_I2C_SetCursor(0, 1);
       LCD_I2C_PrintStr(DISP_BUFFER);
 //      sprintf(DISP_BUFFER, "%8u %8u", CALIB_DATA.ac5, CALIB_DATA.ac6);
 //      while (BUTTON_GetValue());
-      delayms(500);
+
+      delayms(150);
       u++;
       if (u == 11) u = 0;
     }
